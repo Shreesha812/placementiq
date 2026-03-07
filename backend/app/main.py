@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth
 from app.routers import auth, resume
+from app.routers import auth, resume, analysis
 
 app = FastAPI(
     title="PlacementIQ API",
@@ -20,6 +21,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(resume.router)
+app.include_router(analysis.router)
 
 @app.get("/")
 async def root():
