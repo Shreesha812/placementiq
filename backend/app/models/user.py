@@ -1,9 +1,8 @@
 # app/models/user.py
-
 import uuid
 from datetime import datetime
 from sqlalchemy import String, Boolean, DateTime, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
 
@@ -27,3 +26,5 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+    resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
