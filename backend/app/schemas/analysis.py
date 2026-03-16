@@ -32,6 +32,7 @@ class AnalysisOut(BaseModel):
     missing_skills: list[str]
     resume_skills: list[str]
     jd_skills: list[str]
+    llm_insights: dict | None = None
     status: str
     created_at: datetime
 

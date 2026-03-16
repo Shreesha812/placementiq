@@ -14,8 +14,9 @@ class Settings(BaseSettings):
     S3_BUCKET: str
     S3_REGION: str = "us-east-1"
 
-    class Config:
-        env_file = ".env"
+    GROQ_API_KEY: str
+
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
 
 settings = Settings()

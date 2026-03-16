@@ -2,7 +2,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from uuid import UUID
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
@@ -12,6 +11,7 @@ from app.models.job_description import JobDescription
 from app.models.analysis_result import AnalysisResult
 from app.schemas.analysis import AnalysisRequest, AnalysisOut
 from app.services.scoring_engine import run_scoring_engine
+from app.services.llm_service import generate_analysis_insights
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
 
@@ -61,13 +61,24 @@ async def run_analysis(
             extracted_skills=jd_skills,
         )
         db.add(jd)
-        await db.flush()  # get jd.id without committing
+        await db.flush()
 
     # ── Run scoring engine ────────────────────────────────────
     scores = run_scoring_engine(
         resume_text=resume.raw_text,
         resume_parsed=resume.parsed_json or {},
         jd_text=payload.jd_text,
+    )
+
+    # ── Generate LLM insights ─────────────────────────────────
+    llm_insights = generate_analysis_insights(
+        overall_score=scores["overall_score"],
+        matched_skills=scores["matched_skills"],
+        missing_skills=scores["missing_skills"],
+        resume_skills=scores["resume_skills"],
+        jd_skills=scores["jd_skills"],
+        jd_title=payload.jd_title or "this role",
+        jd_company=payload.jd_company or "",
     )
 
     # ── Save analysis result ──────────────────────────────────
@@ -80,14 +91,15 @@ async def run_analysis(
         matched_skills=scores["matched_skills"],
         missing_skills=scores["missing_skills"],
         status="done",
+        llm_insights=llm_insights,
     )
     db.add(analysis)
     await db.commit()
     await db.refresh(analysis)
 
-    # Add these for the response (not stored in DB)
     analysis.resume_skills = scores["resume_skills"]
     analysis.jd_skills = scores["jd_skills"]
+    analysis.llm_insights = llm_insights
 
     return analysis
 

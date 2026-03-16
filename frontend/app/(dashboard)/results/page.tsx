@@ -2,12 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  RadialBarChart,
-  RadialBar,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 
 interface ScoreBreakdown {
   skill_match: { score: number; weight: number; contribution: number };
@@ -24,17 +19,19 @@ interface Analysis {
   missing_skills: string[];
   resume_skills: string[];
   jd_skills: string[];
+  llm_insights: any;
   status: string;
   created_at: string;
 }
 
 export default function ResultsPage() {
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("latest_analysis");
-    if (stored) setAnalysis(JSON.parse(stored));
-  }, []);
+  const [analysis, setAnalysis] = useState<Analysis | null>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("latest_analysis");
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
 
   if (!analysis) {
     return (
@@ -132,7 +129,7 @@ export default function ResultsPage() {
         </div>
 
         {/* Skills */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h3 className="font-semibold mb-3 text-green-400">✅ Matched Skills</h3>
             <div className="flex flex-wrap gap-2">
@@ -154,6 +151,79 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* LLM Insights */}
+        {analysis.llm_insights && (
+          <div className="space-y-4">
+
+            {/* Score Explanation */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="font-semibold mb-2 text-blue-400">🤖 AI Analysis</h3>
+              <p className="text-gray-300 text-sm">{analysis.llm_insights.score_explanation}</p>
+            </div>
+
+            {/* Recommendations */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="font-semibold mb-3 text-yellow-400">💡 Top Recommendations</h3>
+              <ul className="space-y-2">
+                {analysis.llm_insights.top_recommendations?.map((rec: string, i: number) => (
+                  <li key={i} className="flex gap-2 text-sm text-gray-300">
+                    <span className="text-yellow-400 mt-0.5">→</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Learning Roadmap */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="font-semibold mb-3 text-purple-400">🗺️ Learning Roadmap</h3>
+              <div className="space-y-3">
+                {analysis.llm_insights.learning_roadmap?.map((item: any, i: number) => (
+                  <div key={i} className="flex items-start justify-between p-3 bg-gray-800 rounded-lg">
+                    <div>
+                      <span className="text-white font-medium text-sm">{item.skill}</span>
+                      <p className="text-gray-400 text-xs mt-0.5">{item.resource}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        item.priority === "High"
+                          ? "bg-red-900/50 text-red-300"
+                          : item.priority === "Medium"
+                          ? "bg-yellow-900/50 text-yellow-300"
+                          : "bg-green-900/50 text-green-300"
+                      }`}>
+                        {item.priority}
+                      </span>
+                      <p className="text-gray-500 text-xs mt-1">{item.time_estimate}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Resume Tips */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <h3 className="font-semibold mb-3 text-green-400">📝 Resume Tips</h3>
+              <ul className="space-y-2">
+                {analysis.llm_insights.resume_tips?.map((tip: string, i: number) => (
+                  <li key={i} className="flex gap-2 text-sm text-gray-300">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Encouragement */}
+            <div className="bg-blue-900/20 border border-blue-800 rounded-xl p-5 text-center">
+              <p className="text-blue-300 text-sm font-medium">
+                {analysis.llm_insights.encouragement}
+              </p>
+            </div>
+
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,10 +1,9 @@
 # app/models/analysis_result.py
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, Text, Numeric, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
+from sqlalchemy import String, DateTime, ForeignKey, Float
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Float
 from app.core.database import Base
 
 
@@ -28,6 +27,7 @@ class AnalysisResult(Base):
     matched_skills: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     missing_skills: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     strength_areas: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    llm_insights: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="done")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow
