@@ -8,7 +8,6 @@ from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.resume import Resume
 from app.schemas.resume import ResumeOut
-from app.services.storage_service import upload_file
 from app.services.resume_parser import extract_text, parse_sections
 
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
@@ -40,23 +39,17 @@ async def upload_resume(
             detail=f"File size exceeds {MAX_SIZE_MB}MB limit",
         )
 
-    # Generate unique S3 key
-    s3_key = f"resumes/{current_user.id}/{uuid.uuid4()}.pdf"
-
-    # Upload to S3/MinIO
-    upload_file(file_bytes, s3_key)
-
     # Extract text from PDF
     raw_text = extract_text(file_bytes)
 
     # Parse sections into structured JSON
     parsed_json = parse_sections(raw_text)
 
-    # Save to database
+    # Save to database (no S3 upload)
     resume = Resume(
         user_id=current_user.id,
         file_name=file.filename,
-        s3_key=s3_key,
+        s3_key=f"resumes/{current_user.id}/{uuid.uuid4()}.pdf",  # kept for schema compatibility
         raw_text=raw_text,
         parsed_json=parsed_json,
         parse_status="done",

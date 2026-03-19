@@ -8,10 +8,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    S3_ENDPOINT: str
-    S3_ACCESS_KEY: str
-    S3_SECRET_KEY: str
-    S3_BUCKET: str
+    S3_ENDPOINT: str = ""
+    S3_ACCESS_KEY: str = ""
+    S3_SECRET_KEY: str = ""
+    S3_BUCKET: str = ""
     S3_REGION: str = "us-east-1"
 
     GROQ_API_KEY: str
